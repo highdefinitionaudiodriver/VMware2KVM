@@ -1,0 +1,49 @@
+{
+  "spec": {
+    "name": "WebServer01",
+    "description": "Migrated from VMware: WebServer01",
+    "resources": {
+      "num_sockets": 2,
+      "num_vcpus_per_socket": 2,
+      "memory_size_mib": 4096,
+      "power_state": "OFF",
+      "disk_list": [
+        {
+          "device_properties": {
+            "disk_address": {
+              "device_index": 0,
+              "adapter_type": "SCSI"
+            },
+            "device_type": "DISK"
+          },
+          "data_source_reference": {
+            "kind": "image",
+            "uuid": "<IMAGE_UUID_FOR_WebServer01-disk0>"
+          }
+        }
+      ],
+      "nic_list": [
+        {
+          "nic_type": "NORMAL_NIC",
+          "is_connected": true,
+          "subnet_reference": {
+            "kind": "subnet",
+            "uuid": "<SUBNET_UUID_FOR_VM_NETWORK>",
+            "name": "vm-network-subnet"
+          },
+          "mac_address": "00:50:56:8a:12:34"
+        }
+      ],
+      "guest_customization": {
+        "is_overridable": true
+      },
+      "machine_type": "PC"
+    }
+  },
+  "metadata": {
+    "kind": "vm",
+    "categories": {
+      "MigrationSource": "VMware"
+    }
+  }
+}

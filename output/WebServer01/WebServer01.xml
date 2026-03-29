@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain type="kvm">
+  <name>WebServer01</name>
+  <metadata>
+    <!-- Migrated from VMware: WebServer01 -->
+    <!-- Source: WebServer01.vmx -->
+    <!-- Guest OS: centos8-64 -->
+  </metadata>
+  <memory unit="KiB">4194304</memory>
+  <currentMemory unit="KiB">4194304</currentMemory>
+  <vcpu placement="static">4</vcpu>
+  <cpu mode="host-passthrough">
+    <topology sockets="2" cores="2" threads="1"/>
+  </cpu>
+  <os>
+    <type arch="x86_64" machine="pc-i440fx-latest">hvm</type>
+    <boot dev="hd"/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+  </clock>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2" cache="writeback" discard="unmap"/>
+      <source file="./output\WebServer01\WebServer01-disk0.qcow2"/>
+      <target dev="vda" bus="virtio"/>
+    </disk>
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <target dev="sda" bus="sata"/>
+      <readonly/>
+    </disk>
+    <interface type="bridge">
+      <source bridge="br0"/>
+      <model type="virtio"/>
+      <mac address="00:50:56:8a:12:34"/>
+    </interface>
+    <graphics type="vnc" port="-1" autoport="yes" listen="0.0.0.0"/>
+    <video>
+      <model type="qxl" ram="65536" vram="65536"/>
+    </video>
+    <input type="tablet" bus="usb"/>
+    <serial type="pty">
+      <target port="0"/>
+    </serial>
+    <console type="pty">
+      <target type="serial" port="0"/>
+    </console>
+    <channel type="unix">
+      <target type="virtio" name="org.qemu.guest_agent.0"/>
+    </channel>
+  </devices>
+</domain>

@@ -1,0 +1,47 @@
+{
+  "_comment": "VMware network name → KVM/Nutanix network mapping",
+  "kvm": {
+    "VM Network": {
+      "type": "bridge",
+      "name": "br0"
+    },
+    "Production Network": {
+      "type": "bridge",
+      "name": "br-prod"
+    },
+    "Management Network": {
+      "type": "network",
+      "name": "management"
+    },
+    "Corporate LAN": {
+      "type": "bridge",
+      "name": "br-corp"
+    },
+    "default (NAT)": {
+      "type": "network",
+      "name": "default"
+    }
+  },
+  "nutanix": {
+    "VM Network": {
+      "subnet_name": "vm-network-subnet",
+      "subnet_uuid": "<SUBNET_UUID_FOR_VM_NETWORK>",
+      "vlan_id": 0
+    },
+    "Production Network": {
+      "subnet_name": "prod-subnet",
+      "subnet_uuid": "<SUBNET_UUID_FOR_PROD>",
+      "vlan_id": 100
+    },
+    "Management Network": {
+      "subnet_name": "mgmt-subnet",
+      "subnet_uuid": "<SUBNET_UUID_FOR_MGMT>",
+      "vlan_id": 200
+    },
+    "Corporate LAN": {
+      "subnet_name": "corp-subnet",
+      "subnet_uuid": "<SUBNET_UUID_FOR_CORP>",
+      "vlan_id": 10
+    }
+  }
+}

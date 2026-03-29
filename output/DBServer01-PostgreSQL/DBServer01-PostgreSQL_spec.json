@@ -1,0 +1,74 @@
+{
+  "spec": {
+    "name": "DBServer01-PostgreSQL",
+    "description": "Migrated from VMware: DBServer01-PostgreSQL",
+    "resources": {
+      "num_sockets": 2,
+      "num_vcpus_per_socket": 4,
+      "memory_size_mib": 16384,
+      "power_state": "OFF",
+      "disk_list": [
+        {
+          "device_properties": {
+            "disk_address": {
+              "device_index": 0,
+              "adapter_type": "SCSI"
+            },
+            "device_type": "DISK"
+          },
+          "data_source_reference": {
+            "kind": "image",
+            "uuid": "<IMAGE_UUID_FOR_DBServer01-PostgreSQL-disk0>"
+          }
+        },
+        {
+          "device_properties": {
+            "disk_address": {
+              "device_index": 1,
+              "adapter_type": "SCSI"
+            },
+            "device_type": "DISK"
+          },
+          "data_source_reference": {
+            "kind": "image",
+            "uuid": "<IMAGE_UUID_FOR_DBServer01-PostgreSQL-disk1>"
+          }
+        }
+      ],
+      "nic_list": [
+        {
+          "nic_type": "NORMAL_NIC",
+          "is_connected": true,
+          "subnet_reference": {
+            "kind": "subnet",
+            "uuid": "<SUBNET_UUID_FOR_PROD>",
+            "name": "prod-subnet"
+          },
+          "mac_address": "00:50:56:8a:56:78"
+        },
+        {
+          "nic_type": "NORMAL_NIC",
+          "is_connected": true,
+          "subnet_reference": {
+            "kind": "subnet",
+            "uuid": "<SUBNET_UUID_FOR_MGMT>",
+            "name": "mgmt-subnet"
+          }
+        }
+      ],
+      "guest_customization": {
+        "is_overridable": true
+      },
+      "machine_type": "Q35",
+      "boot_config": {
+        "boot_type": "UEFI"
+      }
+    }
+  },
+  "metadata": {
+    "kind": "vm",
+    "categories": {
+      "MigrationSource": "VMware"
+    }
+  }
+}

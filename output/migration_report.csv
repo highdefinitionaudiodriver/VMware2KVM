@@ -1,0 +1,4 @@
+﻿VM Name,Status,CPU,Memory (MB),Disks,Networks,Firmware,Guest OS,Disk Converted,Elapsed (sec),Error,Source File
+DBServer01-PostgreSQL,OK,8,16384,2,2,efi,rhel8-64,No,0.02,,./input\DBServer01\DBServer01.vmx
+WebServer01,OK,4,4096,1,1,bios,centos8-64,No,0.01,,./input\WebServer01\WebServer01.vmx
+WinServer2022-AD,OK,4,8192,1,1,efi,windows2019srvnext-64,No,0.01,,./input\WinServer2022\WinServer2022.vmx

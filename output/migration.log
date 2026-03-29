@@ -1,0 +1,37 @@
+VMware2KVM Migration Log
+Generated: 2026-03-28 18:38:28
+============================================================
+
+Total: 3 VMs | Success: 3 | Failed: 0
+
+[OK] DBServer01-PostgreSQL (0.02s)
+  CPU: 8 vCPU | Memory: 16384 MB | Disks: 2 | Networks: 2 | Firmware: efi | OS: rhel8-64
+  Source: ./input\DBServer01\DBServer01.vmx
+  NIC0: Production Network [vmxnet3] MAC=00:50:56:8a:56:78
+  NIC1: Management Network [vmxnet3] MAC=(auto)
+  KVM XML: ./output\DBServer01-PostgreSQL\DBServer01-PostgreSQL.xml
+  KVM Script: ./output\DBServer01-PostgreSQL\import_DBServer01-PostgreSQL.sh
+  Nutanix acli: ./output\DBServer01-PostgreSQL\import_DBServer01-PostgreSQL_acli.sh
+  Nutanix API: ./output\DBServer01-PostgreSQL\import_DBServer01-PostgreSQL_api.sh
+  Nutanix JSON: ./output\DBServer01-PostgreSQL\DBServer01-PostgreSQL_spec.json
+
+[OK] WebServer01 (0.01s)
+  CPU: 4 vCPU | Memory: 4096 MB | Disks: 1 | Networks: 1 | Firmware: bios | OS: centos8-64
+  Source: ./input\WebServer01\WebServer01.vmx
+  NIC0: VM Network [vmxnet3] MAC=00:50:56:8a:12:34
+  KVM XML: ./output\WebServer01\WebServer01.xml
+  KVM Script: ./output\WebServer01\import_WebServer01.sh
+  Nutanix acli: ./output\WebServer01\import_WebServer01_acli.sh
+  Nutanix API: ./output\WebServer01\import_WebServer01_api.sh
+  Nutanix JSON: ./output\WebServer01\WebServer01_spec.json
+
+[OK] WinServer2022-AD (0.01s)
+  CPU: 4 vCPU | Memory: 8192 MB | Disks: 1 | Networks: 1 | Firmware: efi | OS: windows2019srvnext-64
+  Source: ./input\WinServer2022\WinServer2022.vmx
+  NIC0: Corporate LAN [e1000e] MAC=00:50:56:8a:AB:CD
+  KVM XML: ./output\WinServer2022-AD\WinServer2022-AD.xml
+  KVM Script: ./output\WinServer2022-AD\import_WinServer2022-AD.sh
+  Nutanix acli: ./output\WinServer2022-AD\import_WinServer2022-AD_acli.sh
+  Nutanix API: ./output\WinServer2022-AD\import_WinServer2022-AD_api.sh
+  Nutanix JSON: ./output\WinServer2022-AD\WinServer2022-AD_spec.json
+

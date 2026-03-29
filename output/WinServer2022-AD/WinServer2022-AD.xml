@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain type="kvm">
+  <name>WinServer2022-AD</name>
+  <metadata>
+    <!-- Migrated from VMware: WinServer2022-AD -->
+    <!-- Source: WinServer2022.vmx -->
+    <!-- Guest OS: windows2019srvnext-64 -->
+    <!-- NOTE: Disk bus set to SATA for BSOD avoidance. -->
+    <!--   After installing virtio drivers, change bus to "virtio" for better performance. -->
+  </metadata>
+  <memory unit="KiB">8388608</memory>
+  <currentMemory unit="KiB">8388608</currentMemory>
+  <vcpu placement="static">4</vcpu>
+  <cpu mode="host-passthrough">
+    <topology sockets="2" cores="2" threads="1"/>
+  </cpu>
+  <os>
+    <type arch="x86_64" machine="q35">hvm</type>
+    <loader readonly="yes" type="pflash">/usr/share/OVMF/OVMF_CODE.fd</loader>
+    <nvram>/var/lib/libvirt/qemu/nvram/WinServer2022-AD_VARS.fd</nvram>
+    <boot dev="hd"/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <hyperv>
+      <relaxed state="on"/>
+      <vapic state="on"/>
+      <spinlocks state="on" retries="8191"/>
+    </hyperv>
+  </features>
+  <clock offset="localtime">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+    <timer name="hypervclock" present="yes"/>
+  </clock>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2" cache="writeback" discard="unmap"/>
+      <source file="./output\WinServer2022-AD\WinServer2022-AD-disk0.qcow2"/>
+      <target dev="sda" bus="sata"/>
+    </disk>
+    <!-- virtio-win.iso: Install VirtIO drivers from this CD after first boot -->
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="/usr/share/virtio-win/virtio-win.iso"/>
+      <target dev="sda" bus="sata"/>
+      <readonly/>
+    </disk>
+    <interface type="bridge">
+      <source bridge="br-corp"/>
+      <model type="e1000e"/>
+      <mac address="00:50:56:8a:AB:CD"/>
+    </interface>
+    <graphics type="vnc" port="-1" autoport="yes" listen="0.0.0.0"/>
+    <video>
+      <model type="qxl" ram="65536" vram="65536"/>
+    </video>
+    <input type="tablet" bus="usb"/>
+    <serial type="pty">
+      <target port="0"/>
+    </serial>
+    <console type="pty">
+      <target type="serial" port="0"/>
+    </console>
+    <channel type="unix">
+      <target type="virtio" name="org.qemu.guest_agent.0"/>
+    </channel>
+  </devices>
+</domain>
