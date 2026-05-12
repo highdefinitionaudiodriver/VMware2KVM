@@ -1,0 +1,451 @@
+============================================================
+  VMware2KVM v1.1.0 説明書
+  VMware → KVM / Nutanix AHV 仮想マシン移行ツール（GUI / CLI 対応）
+============================================================
+
+■ ソフト名
+  VMware2KVM
+
+■ バージョン
+  1.1.0
+
+■ 作者名
+  highdefinitionaudiodriver
+
+■ 連絡先
+  GitHub: https://github.com/highdefinitionaudiodriver
+  リポジトリ: https://github.com/highdefinitionaudiodriver/VMware2KVM
+  バグ報告・機能要望: highdefinitionaudiodriver@gmail.com
+
+■ 動作環境
+  対応OS: Windows 10 / 11（64bit推奨）
+          macOS, Linux（ソースから実行可）
+  必要メモリ: 512MB以上
+  ディスク容量: 約13MB（EXE単体）
+  ランタイム: 不要（EXE版は同梱済み。ソース版はPython 3.9以上）
+  外部ツール: qemu-img（ディスク変換時のみ必要。未導入時はコマンド生成のみ）
+
+■ ソフト種別
+  フリーソフト（MITライセンス）
+
+■ カテゴリ
+  システム管理 > 仮想化移行ツール
+
+■ 概要
+  VMware2KVMは、VMware vSphere / Workstation の仮想マシン
+  定義ファイル（.vmx / .ovf / .ova）を解析し、KVM（libvirt）
+  および Nutanix AHV 向けの設定ファイル・移行スクリプトを
+  自動生成するデスクトップアプリケーションです。
+
+  VMware ライセンス高騰に伴い、KVM や Nutanix への移行を
+  検討している企業・組織向けに開発されました。
+
+  フォルダに VMware ファイルを入れて実行するだけで、
+  libvirt XML / qemu-img 変換コマンド / Nutanix acli スクリプト
+  / Prism Central REST API 用 JSON を一括自動生成します。
+
+  GUIとCLIの両方に対応しており、GUIで手軽に変換することも、
+  CLIでバッチ処理として自動化することも可能です。
+
+■ 主な機能
+
+  【VMware ファイル解析】
+  ・.vmx ファイル解析
+    CPU数、コア/ソケット、メモリ、ディスク（SCSI/IDE/SATA/NVMe）、
+    ネットワーク、ファームウェア（BIOS/EFI）、ゲストOS種別を抽出
+  ・.ovf / .ova ファイル解析
+    OVF XML をパースし VM 構成を抽出。OVA は tar 展開を自動実行
+  ・MACアドレス抽出・維持
+    VMware で設定された MAC アドレスを移行先にそのまま引き継ぎ
+
+  【KVM（libvirt）向け出力】
+  ・libvirt ドメイン定義 XML の自動生成
+    - CPU トポロジー（sockets / cores / threads）
+    - メモリ設定
+    - ディスクデバイス（qcow2 形式）
+    - ネットワークインターフェース（bridge / network）
+    - VNC グラフィックス、QXL ビデオ、シリアルコンソール
+    - qemu-guest-agent チャネル
+  ・qemu-img ディスク変換コマンド生成（vmdk → qcow2）
+  ・virsh define / virsh start のインポートシェルスクリプト生成
+
+  【Nutanix AHV 向け出力】
+  ・acli コマンドベースのインポートスクリプト
+    - Image Service へのイメージ登録
+    - アップロード完了待機ループ
+    - VM 作成（vCPU / メモリ / コア数）
+    - イメージからディスクをクローンして VM にアタッチ
+    - NIC 作成（MAC アドレス維持・VLAN 設定）
+  ・Prism Central REST API（v3）スクリプト
+    - curl による Image 登録 + UUID 取得
+    - アップロード COMPLETE 待機
+    - VM 作成 API 呼び出し
+  ・Prism v3 API 用 VM Spec JSON
+    - disk_list / nic_list / boot_config を含む完全な VM 定義
+
+  【Windows VM BSOD 回避機能】
+  ・Windows ゲスト検出時、ディスクバスを自動的に
+    SATA（EFI）/ IDE（BIOS）にフォールバック
+  ・virtio-win.iso を CD-ROM として自動マウント設定
+  ・Hyper-V Enlightenments（relaxed / vapic / spinlocks）を自動付与
+  ・Clock を localtime + hypervclock に自動設定
+  ・インポートスクリプトに VirtIO ドライバ導入手順を記載
+
+  【ネットワークマッピング機能】
+  ・外部設定ファイル（network_map.json）による変換
+    VMware ポートグループ名 → KVM ブリッジ名 / Nutanix サブネット
+  ・KVM: bridge / network タイプの自動判別
+  ・Nutanix: subnet_name / subnet_uuid / vlan_id のマッピング
+  ・MAC アドレスを XML / JSON / acli すべてに引き継ぎ
+
+  【Pre-flight Check（事前チェック）】
+  ・変換前に VMDK 合計サイズと出力先ディスク空き容量を比較
+  ・容量不足の場合は警告を表示し処理を中断
+  ・GUI / CLI 両方で動作
+
+  【移行レポート】
+  ・migration_report.csv
+    VM名、状態（OK/NG）、CPU、メモリ、ディスク数、
+    ネットワーク数、ファームウェア、ゲストOS、
+    ディスク変換有無、所要時間、エラー内容を記録
+  ・migration.log
+    各 VM の詳細情報（NIC / MAC アドレス / 出力パス）を
+    テキスト形式で記録
+
+  【GUI（日本語 / English 対応）】
+  ・入力/出力フォルダの選択
+  ・変換先プラットフォーム選択（KVM / Nutanix / 両方）
+  ・ファイル拡張子の設定
+  ・変換オプションのチェックボックス切り替え
+    - ディスクイメージ変換（vmdk → qcow2）
+    - VM設定ファイル生成
+    - インポートスクリプト生成
+    - qcow2 圧縮
+    - シンプロビジョニング
+  ・Nutanix コンテナ名の指定
+  ・リアルタイム変換ログ表示
+  ・変換のキャンセル（停止）機能
+  ・プログレスバーによる進捗表示
+  ・言語切替（日本語 / English）
+
+  【CLI モード】
+  ・ヘッドレス実行（--input, --output オプション指定）
+  ・バッチ処理・スクリプト組み込み対応
+
+■ 対応言語（UI）
+  日本語, English
+
+■ 対応入力ファイル
+  .vmx   VMware Workstation / ESXi 仮想マシン設定ファイル
+  .ovf   Open Virtualization Format（XML ベース）
+  .ova   OVF + VMDK の tar アーカイブ
+
+■ 生成される出力ファイル
+  【KVM 向け】
+  ・{VM名}.xml                  libvirt ドメイン定義 XML
+  ・import_{VM名}.sh            qemu-img + virsh インポートスクリプト
+
+  【Nutanix 向け】
+  ・import_{VM名}_acli.sh       acli コマンドベースのインポートスクリプト
+  ・import_{VM名}_api.sh        Prism Central REST API スクリプト
+  ・{VM名}_spec.json            Prism v3 API 用 VM Spec JSON
+
+  【共通】
+  ・migration_report.csv        一括変換結果の CSV レポート
+  ・migration.log               詳細ログ
+
+■ インストール方法
+
+  【EXE版（推奨・簡単）】
+  1. VMware2KVM.exe をダウンロード
+  2. 任意のフォルダに配置（インストーラ不要）
+  3. 同フォルダに network_map.json を配置（任意）
+  4. 同フォルダに input フォルダを作成
+  5. ダブルクリックで起動
+  ※ Pythonやその他ランタイムのインストールは不要です。
+
+  【ソース版】
+  1. Python 3.9 以上をインストール
+  2. コマンドプロンプト（またはターミナル）で以下を実行:
+     git clone https://github.com/highdefinitionaudiodriver/VMware2KVM.git
+     cd VMware2KVM
+     pip install -r requirements.txt
+     python main.py
+
+■ 使い方
+
+  【GUI モード（デフォルト）】
+  1. VMware2KVM.exe をダブルクリック
+     （またはpython main.pyで起動）
+  2. 「入力フォルダ」に変換対象の VMware ファイルがある
+     フォルダを指定
+  3. 「出力フォルダ」に変換後ファイルの出力先を指定
+  4. 「変換先」を選択:
+     - KVM (libvirt)
+     - Nutanix AHV
+     - KVM + Nutanix 両方
+  5. 必要に応じてオプションを設定:
+     - ディスクイメージ変換 ON/OFF
+     - VM設定ファイル生成 ON/OFF
+     - インポートスクリプト生成 ON/OFF
+     - qcow2 圧縮 ON/OFF
+     - シンプロビジョニング ON/OFF
+  6. 「一括変換 実行」ボタンをクリック
+  7. ログパネルで変換の進捗を確認
+  8. 出力フォルダに変換済みファイルとレポートが生成される
+
+  【CLI モード】
+  基本:
+    VMware2KVM.exe --input <入力フォルダ> --output <出力フォルダ>
+
+  例:
+    VMware2KVM.exe -i ./input -o ./output -t kvm --no-disk
+    VMware2KVM.exe -i ./input -o ./output -t nutanix --no-disk
+    VMware2KVM.exe -i ./input -o ./output -t both --no-disk
+    VMware2KVM.exe -i ./input -o ./output -t kvm
+    VMware2KVM.exe -i ./input -o ./output -t both --network-map ./network_map.json
+
+  主なオプション:
+    -i, --input          : 入力フォルダ（必須）
+    -o, --output         : 出力フォルダ（必須）
+    -t, --target         : 変換先: kvm / nutanix / both（デフォルト: kvm）
+    --ext                : 対象拡張子（デフォルト: .vmx,.ovf,.ova）
+    --no-disk            : ディスク変換をスキップ（設定ファイルのみ生成）
+    --no-compress        : qcow2 圧縮を無効化
+    --container          : Nutanix コンテナ名（デフォルト: default-container）
+    --network-map        : network_map.json のパス（自動検出あり）
+    --no-win-fallback    : Windows SATA/IDE フォールバックを無効化
+    --virtio-iso         : virtio-win.iso のパス
+    --lang               : 言語: ja / en（デフォルト: ja）
+    --gui                : GUI モードを強制
+
+■ ネットワークマッピング設定
+
+  exe と同じフォルダに network_map.json を配置すると自動で
+  読み込まれます。VMware のネットワーク名を KVM / Nutanix の
+  ネットワークに変換します。
+
+  設定例:
+  {
+    "kvm": {
+      "VM Network":         { "type": "bridge",  "name": "br0" },
+      "Production Network": { "type": "bridge",  "name": "br-prod" },
+      "Management Network": { "type": "network", "name": "management" }
+    },
+    "nutanix": {
+      "VM Network":         { "subnet_name": "vm-subnet",
+                              "subnet_uuid": "<UUID>", "vlan_id": 0 },
+      "Production Network": { "subnet_name": "prod-subnet",
+                              "subnet_uuid": "<UUID>", "vlan_id": 100 }
+    }
+  }
+
+  ※ マッピングされないネットワークは KVM では "default"（NAT）、
+    Nutanix では <SUBNET_UUID> プレースホルダーが使用されます。
+
+■ Windows VM の移行について
+
+  Windows VM は VMware 専用ドライバで動作しているため、
+  そのまま KVM に移行すると BSOD（ブルースクリーン）が
+  発生します。本ツールはこれを自動回避します。
+
+  【自動で行われる対策】
+  ・ディスクバスを virtio → SATA（EFI）/ IDE（BIOS）に変更
+  ・virtio-win.iso を CD-ROM として自動マウント
+  ・Hyper-V Enlightenments を XML に追加
+  ・Clock を localtime + hypervclock に設定
+
+  【移行後の手順（KVM）】
+  1. virsh start {VM名} で VM を起動
+  2. Windows にログイン
+  3. CD-ROM ドライブを開く（virtio-win.iso）
+  4. 以下のドライバをインストール:
+     - viostor（ストレージ）
+     - NetKVM（ネットワーク）
+     - Balloon（メモリバルーン）
+     - vioserial（シリアルポート）
+  5. virsh edit {VM名} でディスクバスを sata → virtio に変更
+  6. VM を再起動 → パフォーマンス向上
+
+  virtio-win.iso は以下から入手可能:
+  ・RHEL/CentOS: sudo yum install virtio-win
+  ・ダウンロード: https://fedorapeople.org/groups/virt/virtio-win/
+
+■ 推奨ワークフロー
+
+  1. VMware からエクスポート（.vmx + .vmdk、または .ova）
+  2. input フォルダに配置
+  3. VMware2KVM で一括変換を実行
+  4. migration_report.csv と migration.log を確認
+  5. network_map.json を環境に合わせて編集
+  6. 再度変換を実行（ネットワーク設定を反映）
+  7. 移行先サーバーで生成スクリプトを実行
+     - KVM: bash import_{VM名}.sh
+     - Nutanix: bash import_{VM名}_acli.sh（CVM上で実行）
+  8. Windows VM は virtio ドライバをインストール
+  9. 動作確認・本番切り替え
+
+■ 入力フォルダの構成例
+
+  input/
+  ├── WebServer01/
+  │   ├── WebServer01.vmx
+  │   └── WebServer01.vmdk
+  ├── DBServer01/
+  │   ├── DBServer01.vmx
+  │   ├── DBServer01-os.vmdk
+  │   └── DBServer01-data.vmdk
+  └── AppServer.ova
+
+■ 出力フォルダの構成例
+
+  output/
+  ├── WebServer01/
+  │   ├── WebServer01.xml
+  │   ├── import_WebServer01.sh
+  │   ├── import_WebServer01_acli.sh
+  │   ├── import_WebServer01_api.sh
+  │   └── WebServer01_spec.json
+  ├── DBServer01/
+  │   └── ...
+  ├── migration_report.csv
+  └── migration.log
+
+■ ファイル構成（EXE版）
+
+  VMware2KVM.exe       - 実行ファイル（これだけで動作します）
+  network_map.json     - ネットワークマッピング設定（任意）
+
+■ ファイル構成（ソース版）
+
+  main.py                      - エントリポイント（CLI + GUI 起動）
+  network_map.json             - ネットワークマッピング設定
+  requirements.txt             - Python 依存パッケージ
+  build.bat / build.sh         - PyInstaller ビルドスクリプト
+  VMware2KVM.spec              - PyInstaller Spec ファイル
+  README.md                    - GitHub 公開用 README
+  docs/MANUAL.md               - 操作説明書（Markdown版）
+  src/
+    __init__.py                - パッケージ初期化
+    vmx_parser.py              - VMware .vmx ファイルパーサー
+    ovf_parser.py              - OVF / OVA ファイルパーサー
+    kvm_generator.py           - KVM libvirt XML / スクリプト生成
+    nutanix_generator.py       - Nutanix acli / API / JSON 生成
+    converter.py               - 一括変換オーケストレーター + レポート
+    gui_model.py               - MVC - Model
+    gui_view.py                - MVC - View（tkinter）
+    gui_controller.py          - MVC - Controller
+    i18n.py                    - 国際化（日本語 / English）
+  input/                       - VMware ファイル配置フォルダ
+  output/                      - 変換結果出力フォルダ
+
+■ 対応ゲスト OS マッピング（抜粋）
+
+  VMware guestOS             → KVM / Nutanix 判定
+  ─────────────────────────────────────────────
+  windows9-64                → Windows (win10)
+  windows2019srv-64          → Windows (win2k19)
+  windows2019srvnext-64      → Windows (win2k22)
+  windows11-64               → Windows (win11)
+  centos7-64 / centos8-64    → Linux (centos7/8)
+  rhel7-64 / rhel8-64        → Linux (rhel7/8)
+  rhel9-64                   → Linux (rhel9)
+  ubuntu-64 / ubuntu64guest  → Linux (ubuntu20.04)
+  debian10-64 〜 debian12-64 → Linux (debian10-12)
+  sles15-64                  → Linux (sles15)
+  otherlinux-64              → Linux (generic)
+
+  ※ Windows 系 OS が検出された場合、自動的に以下を適用:
+    - SATA/IDE バスフォールバック
+    - virtio-win.iso マウント
+    - Hyper-V Enlightenments
+    - localtime クロック
+
+■ 制限事項
+
+  ・VMware スナップショットチェーンは未対応です。
+    移行前にスナップショットを統合（コンソリデート）してください
+  ・RDM（Raw Device Mapping）やPCIパススルーデバイスは
+    変換対象外です
+  ・vGPU 設定は移行されません
+  ・ESXi への直接接続機能はありません。
+    エクスポート済みファイルを変換する方式です
+  ・VM 内部の IP アドレス設定は変更されません。
+    必要に応じて手動で変更してください
+  ・Windows ライセンスの再認証が必要になる場合があります
+  ・大容量 VMDK の変換には相応の時間がかかります
+    （目安: 1TB ≒ 30-60分 程度、環境依存）
+  ・データ移行（VM 内部データの ETL）は対象外です
+  ・変換後の設定で VM が正しく動作することの保証はしません。
+    必ずテスト環境で検証してください
+
+■ トラブルシューティング
+
+  【qemu-img が見つからない】
+  → --no-disk オプションで設定ファイルのみ生成し、
+    移行先サーバーで手動変換してください。
+    生成されたスクリプト内に qemu-img コマンドが記載されています。
+
+  【ディスク容量不足エラー】
+  → 出力先のディスク空き容量を確保するか、
+    --no-disk でディスク変換をスキップしてください。
+
+  【Windows VM が BSOD になる】
+  → libvirt XML のディスクバスが sata / ide であることを確認。
+    --no-win-fallback を使っていないことを確認。
+    virtio-win.iso がマウントされていることを確認。
+
+  【OVA ファイルの解析エラー】
+  → OVA を手動展開して .ovf + .vmdk に分離してから
+    input フォルダに配置してください。
+    tar xvf server.ova -C ./input/server/
+
+  【文字化け（日本語ファイル名）】
+  → VMware 側で日本語 VM 名を使用している場合、
+    .vmx ファイルのエンコーディング自動検出で対応しますが、
+    問題がある場合は VM 名を英数字に変更してエクスポート
+    してください。
+
+■ アンインストール方法
+  フォルダごと削除してください。
+  レジストリへの書き込みは一切行いません。
+
+■ 免責事項
+  本ソフトウェアの使用により生じたいかなる損害に対しても、
+  作者は一切の責任を負いません。
+  変換結果は「ベストエフォート」です。本番環境への適用前に、
+  必ず十分なテストとインフラ担当者によるレビューを
+  実施してください。
+  自己責任にてご利用ください。
+
+■ 著作権・ライセンス
+  Copyright (c) 2026 highdefinitionaudiodriver
+  MITライセンスに基づき自由に使用・改変・再配布できます。
+  詳細はLICENSEファイルを参照してください。
+
+■ 変更履歴
+
+  v1.1.0 (2026-03-29)
+    - Windows BSOD 回避機能追加
+      (SATA/IDE フォールバック + virtio-win.iso 自動マウント)
+    - ネットワークマッピング機能追加 (network_map.json)
+    - MAC アドレス維持機能追加
+    - Pre-flight Check（ディスク空き容量事前チェック）追加
+    - Nutanix スクリプト最適化
+      (Image Service 登録 → 待機 → クローン → アタッチ フロー)
+    - 移行レポート出力追加
+      (migration_report.csv / migration.log)
+    - CLI オプション追加
+      (--network-map / --no-win-fallback / --virtio-iso)
+
+  v1.0.0 (2026-03-28)
+    - 初版リリース
+    - VMware .vmx / .ovf / .ova パーサー搭載
+    - KVM (libvirt) XML / インポートスクリプト生成
+    - Nutanix AHV acli / REST API / JSON Spec 生成
+    - GUI / CLI の2モード対応
+    - 日本語 / English 国際化対応
+    - qemu-img ディスク変換連携
+    - ゲスト OS 自動判定・最適化
+
+============================================================
