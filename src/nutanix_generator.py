@@ -4,6 +4,7 @@ Generates acli commands and REST API scripts for Nutanix import.
 """
 import json
 import os
+import shlex
 from typing import List
 
 from .vmx_parser import VMConfig, GUEST_OS_MAP
@@ -31,10 +32,10 @@ class NutanixGenerator:
         for i, disk in enumerate(config.disks):
             qcow2_name = f"{config.name}-disk{i}.qcow2"
             qcow2_path = os.path.join(vm_dir, qcow2_name)
-            cmd = f'qemu-img convert -f vmdk -O qcow2'
+            cmd = ["qemu-img", "convert", "-f", "vmdk", "-O", "qcow2"]
             if compress:
-                cmd += " -c"
-            cmd += f' "{disk.filename}" "{qcow2_path}"'
+                cmd.append("-c")
+            cmd.extend([disk.filename, qcow2_path])
             result["disk_commands"].append(cmd)
             result["disk_mappings"].append({
                 "source_vmdk": disk.filename,
@@ -100,7 +101,7 @@ class NutanixGenerator:
         # Step 1: Convert disks
         lines.append("echo '=== Step 1: Convert disk images (vmdk → qcow2) ==='")
         for cmd in result["disk_commands"]:
-            lines.append(cmd)
+            lines.append(shlex.join(cmd))
         lines.append("")
 
         # Step 2: Register images to Nutanix Image Service

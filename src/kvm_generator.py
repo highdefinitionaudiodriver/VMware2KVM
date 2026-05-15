@@ -3,6 +3,7 @@ KVM (libvirt) configuration generator.
 Generates libvirt XML domain definitions and qemu-img conversion commands.
 """
 import os
+import shlex
 from typing import List
 
 from .vmx_parser import VMConfig, DiskInfo, GUEST_OS_MAP
@@ -71,11 +72,11 @@ class KvmGenerator:
 
         return result
 
-    def _disk_convert_cmd(self, source: str, target: str, compress: bool) -> str:
-        cmd = f'qemu-img convert -f vmdk -O qcow2'
+    def _disk_convert_cmd(self, source: str, target: str, compress: bool) -> List[str]:
+        cmd = ["qemu-img", "convert", "-f", "vmdk", "-O", "qcow2"]
         if compress:
-            cmd += " -c"
-        cmd += f' "{source}" "{target}"'
+            cmd.append("-c")
+        cmd.extend([source, target])
         return cmd
 
     def _generate_xml(self, config: VMConfig, disk_mappings: list,
@@ -266,8 +267,9 @@ class KvmGenerator:
 
         lines.append("echo '=== Step 1: Convert disk images ==='")
         for cmd in result["disk_commands"]:
-            lines.append(f"echo 'Converting: {os.path.basename(cmd.split()[-1])}'")
-            lines.append(cmd)
+            target_path = cmd[-1]
+            lines.append(f"echo 'Converting: {os.path.basename(target_path)}'")
+            lines.append(shlex.join(cmd))
         lines.append("")
 
         lines.append("echo '=== Step 2: Define VM in libvirt ==='")

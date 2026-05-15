@@ -6,6 +6,7 @@ import csv
 import json
 import logging
 import os
+import shlex
 import shutil
 import subprocess
 import time
@@ -245,7 +246,7 @@ class Converter:
                 vm_name=fname, success=False, error=str(e)
             )
 
-    def _run_disk_conversion(self, commands: List[str], log_fn: Callable) -> bool:
+    def _run_disk_conversion(self, commands: List[List[str]], log_fn: Callable) -> bool:
         """Try to run qemu-img disk conversions. Returns True if successful."""
         if not commands:
             return True
@@ -254,21 +255,25 @@ class Converter:
         if not qemu_img:
             log_fn(("error.qemu_not_found", {}))
             for cmd in commands:
-                log_fn(("log.cmd_hint", {"cmd": cmd}))
+                log_fn(("log.cmd_hint", {"cmd": shlex.join(cmd)}))
             log_fn(("log.skip_disk", {}))
             return False
 
         for cmd in commands:
             if self._stop_requested:
                 return False
-            log_fn(("log.converting_disk", {"file": cmd.split('"')[-2] if '"' in cmd else cmd}))
-            log_fn(("log.cmd_hint", {"cmd": cmd}))
+            # cmd is argv list; replace argv[0] with the resolved qemu-img path
+            argv = [qemu_img] + list(cmd[1:])
+            target_path = argv[-1]
+            cmd_display = shlex.join(argv)
+            log_fn(("log.converting_disk", {"file": target_path}))
+            log_fn(("log.cmd_hint", {"cmd": cmd_display}))
             try:
-                subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-                log_fn(("log.disk_done", {"file": cmd.split('"')[-2] if '"' in cmd else cmd}))
+                subprocess.run(argv, shell=False, check=True, capture_output=True, text=True)
+                log_fn(("log.disk_done", {"file": target_path}))
             except subprocess.CalledProcessError as e:
                 log_fn(("log.error", {"message": f"qemu-img failed: {e.stderr}"}))
-                log_fn(("log.cmd_hint", {"cmd": cmd}))
+                log_fn(("log.cmd_hint", {"cmd": cmd_display}))
                 return False
 
         return True
