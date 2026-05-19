@@ -1,11 +1,28 @@
 # VMware2KVM
 
-**VMware → KVM / Nutanix AHV Migration Tool**
+**VMware → KVM / Nutanix AHV 移行診断・変換支援ツール**
 
 VMware vSphere 環境の仮想マシン (.vmx / .ovf / .ova) を、KVM (libvirt) および Nutanix AHV へ一括変換するツールです。
-フォルダに VMware ファイルを入れて実行するだけで、libvirt XML / Nutanix acli スクリプト / Prism API JSON を自動生成します。
+フォルダに VMware ファイルを入れて実行するだけで、移行対象VMを棚卸しし、libvirt XML / Nutanix acli スクリプト / Prism API JSON のたたき台を自動生成します。
 
-> VMware ライセンス高騰に伴う KVM / Nutanix 移行を支援するために開発されました。
+> VMware ライセンス高騰に伴う KVM / Nutanix 移行を支援するために開発されました。移行前の資産診断、ネットワーク対応表作成、ディスク変換リスク確認、概算作業量の把握に使えます。
+
+---
+
+## 🎯 これは何？（30秒で）
+
+- **誰のため**：Broadcom 買収後の VMware ライセンス高騰で KVM / Nutanix AHV 移行を検討中のインフラ運用担当・情シス
+- **何が解決される**：VMware vSphere の VM 設定 (.vmx / .ovf / .ova) を **libvirt XML / Nutanix acli / Prism API JSON** のたたき台に自動変換。移行対象棚卸しと概算工数を一気に出力
+- **なぜ既存ツールではダメか**：商用移行ツールは高額・要ベンダー契約。`virt-v2v` は単発変換のみで「複数 VM の一括棚卸し＋移行レポート」を出さない。本ツールは **OSS で資産診断機能を含む**
+- **使う条件**：Python 3.10+ / Windows・macOS・Linux
+
+## 💰 想定ユースケース・価格帯
+
+| 用途 | 形態 |
+|---|---|
+| OSS としての利用（自社内 PoC・棚卸し） | 無料（MIT） |
+| VMware 環境の **移行アセスメント受託**（数十〜数百 VM 規模） | 応相談 |
+| Nutanix / 各社 KVM 製品への独自変換ルール追加 | 個別見積もり |
 
 ---
 
@@ -23,6 +40,15 @@ VMware vSphere 環境の仮想マシン (.vmx / .ovf / .ova) を、KVM (libvirt)
 | **Pre-flight Check** | 変換前にディスク空き容量を自動チェック |
 | **移行レポート** | `migration_report.csv` + `migration.log` を自動出力 |
 | **多言語対応** | 日本語 / English |
+
+---
+
+## Business Use / 活用シーン
+
+- VMware 脱却・KVM / Nutanix AHV 移行の初期診断
+- VM構成、ネットワーク、ディスク変換コマンドの棚卸し
+- 移行手順書・見積もり資料に使うスクリプトとレポートの生成
+- Windows VM のドライバ・ディスクバス起因リスクの事前確認
 
 ---
 
@@ -254,3 +280,11 @@ MIT License
 ## Author
 
 Generated with Claude Code
+
+---
+
+## 🤝 商用利用・カスタマイズ依頼
+
+- 個人・社内利用は無料（MIT ライセンス）
+- 法人・自治体・SI 向け導入支援、カスタマイズ、診断レポート受託は応相談
+- 連絡先：highdefinitionaudiodriver@gmail.com
